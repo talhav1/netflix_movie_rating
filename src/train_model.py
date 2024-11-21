@@ -17,7 +17,7 @@ def evaluate_predictions(thresholds, y_true, oof_non_rounded):
     rounded_p = threshold_Rounder(oof_non_rounded, thresholds)
     return RMSE(y_true, rounded_p)
 
-def TrainML(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
+def TrainML_round(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
     SKF = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     train_scores = []
@@ -78,3 +78,47 @@ def TrainML(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
     test_pred_tuned = threshold_Rounder(test_pred_mean, tuned_thresholds)
 
     return test_pred_tuned
+
+
+def TrainML(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
+    SKF = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+
+    train_scores = []
+    val_scores = []
+
+    oof = np.zeros(len(train_y), dtype=float)
+    test_preds = np.zeros((len(test_X), n_splits))
+
+    for fold, (train_idx, val_idx) in enumerate(tqdm(SKF.split(train_X, train_y), desc="Training Folds")):
+        # Split data
+        X_train, X_val = train_X.iloc[train_idx], train_X.iloc[val_idx]
+        y_train, y_val = train_y.iloc[train_idx], train_y.iloc[val_idx]
+
+        # Clone and train model
+        model = clone(model_class)
+        model.fit(X_train, y_train)
+
+        # Predict on validation set
+        y_val_pred = model.predict(X_val)
+        oof[val_idx] = y_val_pred  # Store non-rounded predictions
+
+        # Calculate RMSE
+        train_rmse = RMSE(y_train, model.predict(X_train))
+        val_rmse = RMSE(y_val, oof[val_idx])
+
+        train_scores.append(train_rmse)
+        val_scores.append(val_rmse)
+
+        # Predict on test set
+        test_preds[:, fold] = model.predict(test_X)
+
+        print(f"Fold {fold+1} - Train RMSE: {train_rmse:.4f}, Validation RMSE: {val_rmse:.4f}")
+
+    # Overall scores
+    print(f"Mean Train RMSE: {np.mean(train_scores):.4f}")
+    print(f"Mean Validation RMSE: {np.mean(val_scores):.4f}")
+
+    # Tune test predictions
+    test_pred_mean = np.mean(test_preds, axis=1)
+
+    return test_pred_mean
