@@ -1,11 +1,13 @@
 import numpy as np
 from scipy.optimize import minimize
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.base import clone
 from tqdm import tqdm
 
+
 def RMSE(y_true, y_pred):
     return np.sqrt(np.mean((y_true - y_pred)**2))
+
 
 def threshold_Rounder(oof_non_rounded, thresholds):
     return np.where(oof_non_rounded < thresholds[0], 1,
@@ -13,12 +15,14 @@ def threshold_Rounder(oof_non_rounded, thresholds):
                              np.where(oof_non_rounded < thresholds[2], 3,
                                       np.where(oof_non_rounded < thresholds[3], 4, 5))))
 
+
 def evaluate_predictions(thresholds, y_true, oof_non_rounded):
     rounded_p = threshold_Rounder(oof_non_rounded, thresholds)
     return RMSE(y_true, rounded_p)
 
-def TrainML_round(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
-    SKF = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+
+def trainML_round(train_X, train_y, test_X, model_class, n_splits=5, seed=42):
+    SKF = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     train_scores = []
     val_scores = []
@@ -29,8 +33,8 @@ def TrainML_round(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
 
     for fold, (train_idx, val_idx) in enumerate(tqdm(SKF.split(train_X, train_y), desc="Training Folds")):
         # Split data
-        X_train, X_val = train_X.iloc[train_idx], train_X.iloc[val_idx]
-        y_train, y_val = train_y.iloc[train_idx], train_y.iloc[val_idx]
+        X_train, X_val = train_X[train_idx], train_X[val_idx]
+        y_train, y_val = train_y[train_idx], train_y[val_idx]
 
         # Clone and train model
         model = clone(model_class)
@@ -80,8 +84,8 @@ def TrainML_round(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
     return test_pred_tuned
 
 
-def TrainML(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
-    SKF = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+def trainML(train_X, train_y, test_X, model_class, n_splits=8, seed=42):
+    SKF = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     train_scores = []
     val_scores = []
@@ -91,8 +95,8 @@ def TrainML(train_X, train_y, test_X, model_class, n_splits=10, seed=42):
 
     for fold, (train_idx, val_idx) in enumerate(tqdm(SKF.split(train_X, train_y), desc="Training Folds")):
         # Split data
-        X_train, X_val = train_X.iloc[train_idx], train_X.iloc[val_idx]
-        y_train, y_val = train_y.iloc[train_idx], train_y.iloc[val_idx]
+        X_train, X_val = train_X[train_idx], train_X[val_idx]
+        y_train, y_val = train_y[train_idx], train_y[val_idx]
 
         # Clone and train model
         model = clone(model_class)
