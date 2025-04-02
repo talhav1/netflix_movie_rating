@@ -12,32 +12,32 @@ train_X, train_y, test_X = process_data.train_test_split(data=data_dict, imputat
 
 # Create model instances
 Light = LGBMRegressor(
-    learning_rate=0.05,       # Lower learning rate
-    max_depth=6,             # Limit tree depth
-    num_leaves=31,           # Standard number of leaves
-    min_child_samples=20,    # Minimum samples per leaf
-    lambda_l1=1.0,           # L1 regularization
-    lambda_l2=1.0            # L2 regularization
+    learning_rate=0.05,      
+    max_depth=6,            
+    num_leaves=31,         
+    min_child_samples=20,    
+    lambda_l1=1.0,          
+    lambda_l2=1.0           
 )
 
 XGB_Model = XGBRegressor(
-    learning_rate=0.05,       # Lower learning rate
-    max_depth=6,             # Limit tree depth
-    min_child_weight=5,      # Minimum child weight
-    reg_alpha=1.0,           # L1 regularization
-    reg_lambda=1.0,          # L2 regularization
-    subsample=0.8,           # Use subsampling
-    colsample_bytree=0.8     # Use feature subsampling
+    learning_rate=0.05,      
+    max_depth=6,            
+    min_child_weight=5,      
+    reg_alpha=1.0,           
+    reg_lambda=1.0,          
+    subsample=0.8,          
+    colsample_bytree=0.8     
 )
 
 CatBoost_Model = CatBoostRegressor(
-    learning_rate=0.05,       # Lower learning rate
-    depth=6,                 # Limit tree depth
-    l2_leaf_reg=3.0,         # L2 regularization
-    random_strength=1.0,     # Add randomness for regularization
-    iterations=1000,         # Increase iterations for convergence
-    early_stopping_rounds=100,  # Enable early stopping
-    verbose=200              # Log progress
+    learning_rate=0.05,       
+    depth=6,                 
+    l2_leaf_reg=3.0,         
+    random_strength=1.0,     
+    iterations=1000,         
+    early_stopping_rounds=100,  
+    verbose=200             
 )
 
 voting_model = VotingRegressor(estimators=[
